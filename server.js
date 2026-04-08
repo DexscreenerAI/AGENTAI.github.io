@@ -14,7 +14,7 @@ const config = {
   port: process.env.PORT || 3000,
   mongoUri: process.env.MONGODB_URI || null,
   anthropicKey: process.env.ANTHROPIC_API_KEY || null,
-  platformWallet: process.env.PLATFORM_WALLET || 'NOT_SET',
+  platformWallet: process.env.PLATFORM_WALLET || '2jZ9gpmfZBrz5qcVCZmqiFexQgcdfaZsoV9wGCqt2mhn',
   network: process.env.NETWORK || 'devnet',
 };
 

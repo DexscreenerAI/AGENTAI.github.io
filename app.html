@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DEXAI AGENT | App</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Solana Web3.js -->
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
   <style>
     :root { --bg-primary: #0a0a0f; --bg-secondary: #12121a; --bg-card: #16161f; --bg-input: #1a1a24; --accent-primary: #00ff88; --accent-secondary: #00d4ff; --accent-warning: #ffaa00; --accent-danger: #ff3366; --text-primary: #ffffff; --text-secondary: #8a8a9a; --text-muted: #5a5a6a; --border-color: rgba(0, 255, 136, 0.15); --gradient-primary: linear-gradient(135deg, #00ff88, #00d4ff); }
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -15,13 +17,16 @@
     .logo-icon { width: 36px; height: 36px; background: var(--gradient-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron'; font-weight: 900; color: var(--bg-primary); }
     .logo-text { font-family: 'Orbitron'; font-weight: 700; font-size: 1.2rem; }
     .logo-text span { background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+    .network-badge { background: rgba(255, 170, 0, 0.1); border: 1px solid var(--accent-warning); color: var(--accent-warning); padding: 0.4rem 0.8rem; border-radius: 6px; font-family: 'JetBrains Mono'; font-size: 0.7rem; }
+    .network-badge.mainnet { background: rgba(0, 255, 136, 0.1); border-color: var(--accent-primary); color: var(--accent-primary); }
     .wallet-btn { background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.75rem 1.5rem; border-radius: 10px; font-family: 'Orbitron'; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s; }
     .wallet-btn:hover { border-color: var(--accent-primary); }
     .wallet-btn.connected { background: rgba(0, 255, 136, 0.1); border-color: var(--accent-primary); color: var(--accent-primary); }
     .wallet-btn .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-danger); }
     .wallet-btn.connected .dot { background: var(--accent-primary); animation: pulse 2s infinite; }
     @keyframes pulse { 50% { opacity: 0.5; } }
-    main { position: relative; z-index: 1; display: grid; grid-template-columns: 260px 1fr 380px; min-height: calc(100vh - 70px); }
+    main { position: relative; z-index: 1; display: grid; grid-template-columns: 280px 1fr 400px; min-height: calc(100vh - 70px); }
     .sidebar { background: var(--bg-secondary); border-right: 1px solid var(--border-color); padding: 1.5rem; }
     .sidebar-title { font-family: 'Orbitron'; font-size: 0.7rem; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 1rem; }
     .agent-list { display: flex; flex-direction: column; gap: 0.5rem; }
@@ -36,6 +41,10 @@
     .balance-box { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 1rem; margin-top: 1.5rem; }
     .balance-label { font-size: 0.7rem; color: var(--text-muted); letter-spacing: 1px; }
     .balance-value { font-family: 'Orbitron'; font-size: 1.1rem; color: var(--accent-primary); margin-top: 0.25rem; }
+    .balance-row { display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border-color); }
+    .balance-sol { font-family: 'JetBrains Mono'; font-size: 0.85rem; color: var(--text-secondary); }
+    .refresh-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1rem; }
+    .refresh-btn:hover { color: var(--accent-primary); }
     .content { padding: 2rem; overflow-y: auto; }
     .content-header h1 { font-family: 'Orbitron'; font-size: 1.6rem; display: flex; align-items: center; gap: 0.75rem; }
     .content-header p { color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.95rem; }
@@ -74,17 +83,21 @@
     @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } }
     .toast.success { border-color: var(--accent-primary); }
     .toast.error { border-color: var(--accent-danger); }
-    /* Demo Mode Banner */
-    .demo-banner { background: linear-gradient(90deg, rgba(255, 170, 0, 0.1), rgba(0, 255, 136, 0.1)); border: 1px solid var(--accent-warning); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; }
-    .demo-banner span:first-child { font-size: 1.2rem; }
+    .info-banner { background: linear-gradient(90deg, rgba(0, 212, 255, 0.1), rgba(0, 255, 136, 0.1)); border: 1px solid var(--accent-secondary); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; }
+    .info-banner span:first-child { font-size: 1.2rem; }
+    .tx-link { color: var(--accent-secondary); text-decoration: none; font-family: 'JetBrains Mono'; font-size: 0.75rem; }
+    .tx-link:hover { text-decoration: underline; }
     @media (max-width: 1100px) { main { grid-template-columns: 1fr; } .sidebar, .results { display: none; } }
   </style>
 </head>
 <body>
   <div class="bg-grid"></div>
   <header>
-    <a href="landing.html" class="logo"><div class="logo-icon">D</div><div class="logo-text">DEX<span>AI</span></div></a>
-    <button class="wallet-btn" id="walletBtn" onclick="connectWallet()"><span class="dot"></span><span id="walletText">Connect Wallet</span></button>
+    <a href="/" class="logo"><div class="logo-icon">D</div><div class="logo-text">DEX<span>AI</span></div></a>
+    <div class="header-right">
+      <div class="network-badge" id="networkBadge">DEVNET</div>
+      <button class="wallet-btn" id="walletBtn" onclick="connectWallet()"><span class="dot"></span><span id="walletText">Connect Wallet</span></button>
+    </div>
   </header>
   <main>
     <aside class="sidebar">
@@ -95,10 +108,17 @@
         <div class="agent-item" data-agent="smart-contract-auditor"><div class="agent-item-header"><span class="agent-item-icon">🔐</span><span class="agent-item-name">SC Auditor</span></div><div class="agent-item-price">$1.00</div><div class="agent-item-desc">Smart contract security</div></div>
         <div class="agent-item" data-agent="content-writer"><div class="agent-item-header"><span class="agent-item-icon">✍️</span><span class="agent-item-name">Content Writer</span></div><div class="agent-item-price">$0.20</div><div class="agent-item-desc">Crypto content creation</div></div>
       </div>
-      <div class="balance-box" id="balanceBox" style="display:none;"><div class="balance-label">USDC BALANCE</div><div class="balance-value" id="usdcBalance">0.00</div></div>
+      <div class="balance-box" id="balanceBox" style="display:none;">
+        <div class="balance-label">USDC BALANCE</div>
+        <div class="balance-value" id="usdcBalance">Loading...</div>
+        <div class="balance-row">
+          <div class="balance-sol" id="solBalance">0 SOL</div>
+          <button class="refresh-btn" onclick="fetchBalances()" title="Refresh">🔄</button>
+        </div>
+      </div>
     </aside>
     <section class="content">
-      <div class="demo-banner"><span>🧪</span><span><strong>Demo Mode:</strong> Wallet signature simulates payment. No real USDC charged.</span></div>
+      <div class="info-banner"><span>💳</span><span><strong>Real Payments:</strong> USDC transfers on Solana. Currently on <span id="networkText">Devnet</span>.</span></div>
       <!-- Solana Analyzer Form -->
       <div id="form-solana-analyzer" class="agent-form">
         <div class="content-header"><h1>📊 Solana Analyzer</h1><p>Get comprehensive token analysis with DexScreener, Rugcheck, and AI recommendations.</p></div>
@@ -137,28 +157,207 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    // CONFIG - Change API_URL to your Railway URL
-    const API_URL = window.location.origin;
-    const PRICES = { 'solana-analyzer': 0.50, 'code-reviewer': 0.25, 'smart-contract-auditor': 1.00, 'content-writer': 0.20 };
-    const NAMES = { 'solana-analyzer': '📊 Solana Analyzer', 'code-reviewer': '🔍 Code Reviewer', 'smart-contract-auditor': '🔐 SC Auditor', 'content-writer': '✍️ Content Writer' };
-    
-    let wallet = null;
+    // ===========================
+    // CONFIGURATION
+    // ===========================
+    const CONFIG = {
+      // API URL - ton serveur Railway
+      API_URL: window.location.origin,
+      
+      // Network: 'devnet' ou 'mainnet-beta'
+      NETWORK: 'devnet',
+      
+      // RPC endpoints
+      RPC: {
+        'devnet': 'https://api.devnet.solana.com',
+        'mainnet-beta': 'https://api.mainnet-beta.solana.com'
+      },
+      
+      // USDC Mint addresses
+      USDC_MINT: {
+        'devnet': '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU',
+        'mainnet-beta': 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
+      },
+      
+      // Wallet qui reçoit les paiements
+      RECIPIENT_WALLET: '2jZ9gpmfZBrz5qcVCZmqiFexQgcdfaZsoV9wGCqt2mhn',
+      
+      // Prix des agents
+      PRICES: {
+        'solana-analyzer': 0.50,
+        'code-reviewer': 0.25,
+        'smart-contract-auditor': 1.00,
+        'content-writer': 0.20
+      }
+    };
 
-    // Wallet Connection
+    const NAMES = {
+      'solana-analyzer': '📊 Solana Analyzer',
+      'code-reviewer': '🔍 Code Reviewer', 
+      'smart-contract-auditor': '🔐 SC Auditor',
+      'content-writer': '✍️ Content Writer'
+    };
+
+    // ===========================
+    // STATE
+    // ===========================
+    let wallet = null;
+    let connection = null;
+    let usdcBalance = 0;
+    let solBalance = 0;
+
+    // ===========================
+    // INIT
+    // ===========================
+    function init() {
+      // Setup Solana connection
+      connection = new solanaWeb3.Connection(CONFIG.RPC[CONFIG.NETWORK], 'confirmed');
+      
+      // Update network badge
+      const badge = document.getElementById('networkBadge');
+      const networkText = document.getElementById('networkText');
+      if (CONFIG.NETWORK === 'mainnet-beta') {
+        badge.textContent = 'MAINNET';
+        badge.classList.add('mainnet');
+        networkText.textContent = 'Mainnet';
+      } else {
+        badge.textContent = 'DEVNET';
+        networkText.textContent = 'Devnet';
+      }
+      
+      // Auto-connect if already connected
+      if (window.solana?.isConnected) {
+        connectWallet();
+      }
+    }
+
+    // ===========================
+    // WALLET
+    // ===========================
     async function connectWallet() {
-      if (!window.solana?.isPhantom) { showToast('Install Phantom wallet', 'error'); window.open('https://phantom.app', '_blank'); return; }
+      if (!window.solana?.isPhantom) {
+        showToast('Install Phantom wallet', 'error');
+        window.open('https://phantom.app', '_blank');
+        return;
+      }
+      
       try {
         const resp = await window.solana.connect();
         wallet = resp.publicKey.toString();
+        
         document.getElementById('walletBtn').classList.add('connected');
         document.getElementById('walletText').textContent = wallet.slice(0,4) + '...' + wallet.slice(-4);
         document.getElementById('balanceBox').style.display = 'block';
-        document.getElementById('usdcBalance').textContent = '25.00 USDC';
+        
+        await fetchBalances();
         showToast('Wallet connected!', 'success');
-      } catch (e) { showToast('Connection failed', 'error'); }
+      } catch (e) {
+        console.error('Connection error:', e);
+        showToast('Connection failed', 'error');
+      }
     }
 
-    // Agent Selection
+    // ===========================
+    // BALANCES
+    // ===========================
+    async function fetchBalances() {
+      if (!wallet) return;
+      
+      try {
+        const pubkey = new solanaWeb3.PublicKey(wallet);
+        
+        // Fetch SOL balance
+        const solBal = await connection.getBalance(pubkey);
+        solBalance = solBal / solanaWeb3.LAMPORTS_PER_SOL;
+        document.getElementById('solBalance').textContent = solBalance.toFixed(4) + ' SOL';
+        
+        // Fetch USDC balance
+        const usdcMint = new solanaWeb3.PublicKey(CONFIG.USDC_MINT[CONFIG.NETWORK]);
+        
+        // Get associated token account
+        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(pubkey, {
+          mint: usdcMint
+        });
+        
+        if (tokenAccounts.value.length > 0) {
+          const tokenAmount = tokenAccounts.value[0].account.data.parsed.info.tokenAmount;
+          usdcBalance = parseFloat(tokenAmount.uiAmount || 0);
+        } else {
+          usdcBalance = 0;
+        }
+        
+        document.getElementById('usdcBalance').textContent = usdcBalance.toFixed(2) + ' USDC';
+        
+      } catch (e) {
+        console.error('Balance fetch error:', e);
+        document.getElementById('usdcBalance').textContent = '0.00 USDC';
+        document.getElementById('solBalance').textContent = '0 SOL';
+      }
+    }
+
+    // ===========================
+    // PAYMENT
+    // ===========================
+    async function sendUSDCPayment(amount) {
+      if (!wallet) throw new Error('Wallet not connected');
+      
+      const usdcMint = new solanaWeb3.PublicKey(CONFIG.USDC_MINT[CONFIG.NETWORK]);
+      const fromPubkey = new solanaWeb3.PublicKey(wallet);
+      const toPubkey = new solanaWeb3.PublicKey(CONFIG.RECIPIENT_WALLET);
+      
+      // USDC has 6 decimals
+      const amountInSmallestUnit = Math.floor(amount * 1_000_000);
+      
+      // Get token accounts
+      const fromTokenAccounts = await connection.getParsedTokenAccountsByOwner(fromPubkey, { mint: usdcMint });
+      const toTokenAccounts = await connection.getParsedTokenAccountsByOwner(toPubkey, { mint: usdcMint });
+      
+      if (fromTokenAccounts.value.length === 0) {
+        throw new Error('No USDC token account found. Please add USDC to your wallet.');
+      }
+      
+      const fromTokenAccount = fromTokenAccounts.value[0].pubkey;
+      
+      // Check if recipient has token account, if not we need to create it
+      let toTokenAccount;
+      if (toTokenAccounts.value.length === 0) {
+        // Would need to create ATA - for simplicity, require recipient to have account
+        throw new Error('Recipient USDC account not initialized');
+      } else {
+        toTokenAccount = toTokenAccounts.value[0].pubkey;
+      }
+      
+      // Create transfer instruction
+      const transaction = new solanaWeb3.Transaction().add(
+        // SPL Token transfer instruction
+        {
+          keys: [
+            { pubkey: fromTokenAccount, isSigner: false, isWritable: true },
+            { pubkey: toTokenAccount, isSigner: false, isWritable: true },
+            { pubkey: fromPubkey, isSigner: true, isWritable: false },
+          ],
+          programId: new solanaWeb3.PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+          data: Buffer.from([3, ...new Uint8Array(new BigUint64Array([BigInt(amountInSmallestUnit)]).buffer)])
+        }
+      );
+      
+      // Get recent blockhash
+      const { blockhash } = await connection.getLatestBlockhash();
+      transaction.recentBlockhash = blockhash;
+      transaction.feePayer = fromPubkey;
+      
+      // Sign and send
+      const { signature } = await window.solana.signAndSendTransaction(transaction);
+      
+      // Wait for confirmation
+      await connection.confirmTransaction(signature, 'confirmed');
+      
+      return signature;
+    }
+
+    // ===========================
+    // AGENT SELECTION
+    // ===========================
     document.querySelectorAll('.agent-item').forEach(item => {
       item.addEventListener('click', () => {
         document.querySelectorAll('.agent-item').forEach(i => i.classList.remove('active'));
@@ -167,12 +366,30 @@
         document.getElementById('form-' + item.dataset.agent).style.display = 'block';
       });
     });
-    if (location.hash) { const el = document.querySelector('[data-agent="' + location.hash.slice(1) + '"]'); if (el) el.click(); }
+    
+    if (location.hash) {
+      const el = document.querySelector('[data-agent="' + location.hash.slice(1) + '"]');
+      if (el) el.click();
+    }
 
-    // Run Agent
+    // ===========================
+    // RUN AGENT
+    // ===========================
     async function runAgent(agentId) {
-      if (!wallet) { showToast('Connect wallet first', 'error'); return; }
+      if (!wallet) {
+        showToast('Connect wallet first', 'error');
+        return;
+      }
       
+      const price = CONFIG.PRICES[agentId];
+      
+      // Check balance
+      if (usdcBalance < price) {
+        showToast(`Insufficient USDC. Need ${price}, have ${usdcBalance.toFixed(2)}`, 'error');
+        return;
+      }
+      
+      // Build request body
       let endpoint, body;
       switch (agentId) {
         case 'solana-analyzer':
@@ -201,60 +418,101 @@
           break;
       }
 
-      addResult(agentId, null, 'pending');
+      // Show pending
+      addResult(agentId, { status: 'Processing payment...' }, 'pending');
       
       try {
-        // Simulate payment signature
-        const msg = new TextEncoder().encode('Pay ' + PRICES[agentId] + ' USDC');
-        const { signature } = await window.solana.signMessage(msg, 'utf8');
-        const sig = btoa(String.fromCharCode(...signature));
+        // Step 1: Send USDC payment
+        showToast('Confirm payment in Phantom...', 'info');
+        const txSignature = await sendUSDCPayment(price);
         
-        const res = await fetch(API_URL + endpoint, {
+        updateLastResult(agentId, { status: 'Payment confirmed! Running AI...' }, 'pending');
+        showToast('Payment sent! TX: ' + txSignature.slice(0,8) + '...', 'success');
+        
+        // Step 2: Call API with payment proof
+        const res = await fetch(CONFIG.API_URL + endpoint, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Payment': 'USDC:' + PRICES[agentId] + ':' + sig + ':' + wallet },
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Payment': `USDC:${price}:${txSignature}:${wallet}`
+          },
           body: JSON.stringify(body)
         });
+        
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Failed');
+        
+        if (!res.ok) throw new Error(data.error || 'API failed');
+        
+        // Success!
         updateLastResult(agentId, data, 'success');
-        showToast('Done!', 'success');
+        showToast('Analysis complete!', 'success');
+        
+        // Refresh balance
+        await fetchBalances();
+        
       } catch (e) {
+        console.error('Agent error:', e);
         updateLastResult(agentId, { error: e.message }, 'error');
         showToast(e.message, 'error');
       }
     }
 
-    // Results
+    // ===========================
+    // RESULTS
+    // ===========================
     function addResult(agentId, data, status) {
       const c = document.getElementById('resultsContainer');
-      const empty = c.querySelector('.empty-state'); if (empty) empty.remove();
+      const empty = c.querySelector('.empty-state');
+      if (empty) empty.remove();
+      
       const card = document.createElement('div');
       card.className = 'result-card ' + status;
-      card.innerHTML = '<div class="result-header"><div class="result-agent">' + NAMES[agentId] + '</div><div class="result-time">' + new Date().toLocaleTimeString() + '</div></div><div class="result-body">' + (status === 'pending' ? '<div class="loading"><div class="spinner"></div></div>' : formatResult(data)) + '</div>';
+      card.innerHTML = `
+        <div class="result-header">
+          <div class="result-agent">${NAMES[agentId]}</div>
+          <div class="result-time">${new Date().toLocaleTimeString()}</div>
+        </div>
+        <div class="result-body">${status === 'pending' ? '<div class="loading"><div class="spinner"></div><div style="color:var(--text-secondary);font-size:0.8rem;margin-top:0.5rem;">' + (data.status || 'Processing...') + '</div></div>' : formatResult(data)}</div>
+      `;
       c.insertBefore(card, c.firstChild);
     }
+    
     function updateLastResult(agentId, data, status) {
       const card = document.querySelector('.result-card');
-      if (card) { card.className = 'result-card ' + status; card.querySelector('.result-body').innerHTML = formatResult(data); }
+      if (card) {
+        card.className = 'result-card ' + status;
+        card.querySelector('.result-body').innerHTML = status === 'pending' 
+          ? '<div class="loading"><div class="spinner"></div><div style="color:var(--text-secondary);font-size:0.8rem;margin-top:0.5rem;">' + (data.status || 'Processing...') + '</div></div>'
+          : formatResult(data);
+      }
     }
+    
     function formatResult(d) {
       if (!d) return '';
       if (d.error) return '<span style="color:var(--accent-danger)">Error: ' + d.error + '</span>';
       return JSON.stringify(d, null, 2);
     }
-    function clearResults() { document.getElementById('resultsContainer').innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>No results yet.</p></div>'; }
-
-    // Toast
-    function showToast(msg, type) {
-      const t = document.createElement('div');
-      t.className = 'toast ' + type;
-      t.innerHTML = '<span>' + (type === 'success' ? '✅' : '❌') + '</span><span>' + msg + '</span>';
-      document.getElementById('toastContainer').appendChild(t);
-      setTimeout(() => t.remove(), 3000);
+    
+    function clearResults() {
+      document.getElementById('resultsContainer').innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>No results yet.</p></div>';
     }
 
-    // Auto-connect
-    if (window.solana?.isConnected) connectWallet();
+    // ===========================
+    // TOAST
+    // ===========================
+    function showToast(msg, type) {
+      const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+      const t = document.createElement('div');
+      t.className = 'toast ' + type;
+      t.innerHTML = '<span>' + (icons[type] || 'ℹ️') + '</span><span>' + msg + '</span>';
+      document.getElementById('toastContainer').appendChild(t);
+      setTimeout(() => t.remove(), 4000);
+    }
+
+    // ===========================
+    // START
+    // ===========================
+    init();
   </script>
 </body>
 </html>
