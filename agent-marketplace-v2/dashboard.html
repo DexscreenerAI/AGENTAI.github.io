@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent Marketplace V2</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --bg-card: #111118;
+      --bg-card-hover: #16161f;
+      --bg-input: #0d0d12;
+      --border: #222233;
+      --accent: #6366f1;
+      --accent-dim: #6366f133;
+      --success: #10b981;
+      --success-dim: #10b98133;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --text: #ffffff;
+      --text-secondary: #9ca3af;
+      --text-dim: #4b5563;
+      --human: #ec4899;
+      --ai: #06b6d4;
+      --gold: #fbbf24;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'JetBrains Mono', monospace; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
+    
+    /* Header */
+    .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--border); margin-bottom: 30px; }
+    .logo { display: flex; align-items: center; gap: 15px; }
+    .logo-icon { width: 48px; height: 48px; background: linear-gradient(135deg, var(--accent), var(--success)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+    .logo-text h1 { font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; }
+    .logo-text span { font-size: 0.75rem; color: var(--text-secondary); }
+    .version-badge { background: var(--success); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.65rem; margin-left: 10px; }
+    .header-actions { display: flex; gap: 10px; }
+    
+    /* Buttons */
+    .btn { font-family: inherit; font-size: 0.8rem; font-weight: 500; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: #5558e3; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-outline { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+    .btn-small { padding: 6px 12px; font-size: 0.75rem; }
+    .btn-gold { background: linear-gradient(135deg, var(--gold), #f97316); color: black; }
+    
+    /* Stats Grid */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 30px; }
+    .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 15px; }
+    .stat-label { font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+    .stat-value { font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; }
+    .stat-value.accent { color: var(--accent); }
+    .stat-value.success { color: var(--success); }
+    .stat-value.warning { color: var(--warning); }
+    .stat-value.gold { color: var(--gold); }
+    
+    /* Feature badges */
+    .feature-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+    .feature-badge { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; font-size: 0.75rem; }
+    .feature-badge.active { border-color: var(--success); background: var(--success-dim); }
+    .feature-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+    
+    /* Tabs */
+    .tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; overflow-x: auto; }
+    .tab { padding: 10px 16px; background: transparent; border: none; color: var(--text-secondary); cursor: pointer; font-family: inherit; font-size: 0.8rem; border-radius: 6px; transition: all 0.2s; white-space: nowrap; }
+    .tab.active { background: var(--accent); color: white; }
+    .tab:hover:not(.active) { background: var(--bg-card); color: var(--text); }
+    
+    /* Tab Content */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    /* Grid */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    @media (max-width: 1000px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+    
+    /* Cards */
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .card-header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .card-title { font-family: 'Space Grotesk', sans-serif; font-size: 1rem; font-weight: 600; }
+    .card-body { padding: 20px; }
+    .card-body.no-padding { padding: 0; }
+    
+    /* Agent List */
+    .agent-list { max-height: 350px; overflow-y: auto; }
+    .agent-item { display: grid; grid-template-columns: auto 1fr auto; gap: 15px; padding: 12px 20px; border-bottom: 1px solid var(--border); align-items: center; }
+    .agent-item:hover { background: var(--bg-card-hover); }
+    .agent-avatar { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .agent-avatar.human { background: linear-gradient(135deg, var(--human), #db2777); }
+    .agent-avatar.ai { background: linear-gradient(135deg, var(--ai), #0891b2); }
+    .agent-info h4 { font-size: 0.85rem; margin-bottom: 2px; }
+    .agent-info p { font-size: 0.7rem; color: var(--text-secondary); }
+    .agent-meta { text-align: right; }
+    .agent-meta .rate { font-size: 0.85rem; color: var(--success); }
+    .agent-meta .stars { font-size: 0.7rem; color: var(--gold); }
+    
+    /* Reputation Card */
+    .reputation-card { background: linear-gradient(135deg, var(--bg-card) 0%, #1a1a2e 100%); border-radius: 12px; padding: 20px; text-align: center; }
+    .reputation-card .tier { font-size: 0.7rem; color: var(--gold); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
+    .reputation-card .icon { font-size: 48px; margin-bottom: 10px; }
+    .reputation-card .name { font-size: 1.2rem; font-weight: 700; margin-bottom: 5px; }
+    .reputation-card .badges { display: flex; gap: 5px; justify-content: center; margin-top: 15px; }
+    .reputation-card .badge { font-size: 20px; }
+    
+    /* x402 Panel */
+    .x402-panel { background: linear-gradient(135deg, #1e1b4b 0%, var(--bg-card) 100%); border: 1px solid var(--accent); }
+    .x402-panel .card-header { border-color: var(--accent-dim); }
+    .price-tag { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; background: var(--success-dim); border-radius: 20px; font-size: 0.8rem; color: var(--success); }
+    
+    /* Forms */
+    .form-group { margin-bottom: 15px; }
+    .form-label { display: block; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 6px; }
+    .form-input, .form-select, .form-textarea { width: 100%; padding: 10px 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: inherit; font-size: 0.85rem; }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--accent); }
+    .form-textarea { min-height: 80px; resize: vertical; }
+    
+    /* Match Results */
+    .match-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-input); border-radius: 8px; margin-bottom: 8px; }
+    .match-score { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk', sans-serif; font-size: 0.9rem; font-weight: 700; }
+    .match-score.high { background: var(--success-dim); color: var(--success); }
+    .match-score.medium { background: var(--accent-dim); color: var(--accent); }
+    .match-time { font-size: 0.75rem; color: var(--success); padding: 8px; background: var(--success-dim); border-radius: 6px; text-align: center; margin-bottom: 15px; }
+    
+    /* Leaderboard */
+    .leaderboard-item { display: grid; grid-template-columns: 40px 1fr auto; gap: 15px; padding: 12px; border-bottom: 1px solid var(--border); align-items: center; }
+    .leaderboard-rank { font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--gold); text-align: center; }
+    .leaderboard-rank.silver { color: #c0c0c0; }
+    .leaderboard-rank.bronze { color: #cd7f32; }
+    
+    /* Console */
+    .console { background: #000; border-radius: 8px; padding: 12px; max-height: 180px; overflow-y: auto; font-size: 0.7rem; }
+    .console-line { margin-bottom: 4px; opacity: 0.8; }
+    .console-line.info { color: var(--ai); }
+    .console-line.success { color: var(--success); }
+    .console-line.error { color: var(--error); }
+    .console-line.x402 { color: var(--gold); }
+    
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 25px; max-width: 500px; width: 95%; max-height: 80vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; }
+    .modal-close { background: none; border: none; color: var(--text-secondary); font-size: 1.5rem; cursor: pointer; }
+    
+    /* Type Toggle */
+    .type-toggle { display: flex; gap: 10px; margin-bottom: 20px; }
+    .type-btn { flex: 1; padding: 12px; background: var(--bg-input); border: 2px solid var(--border); border-radius: 8px; cursor: pointer; text-align: center; transition: all 0.2s; }
+    .type-btn.active { border-color: var(--accent); background: var(--accent-dim); }
+    .type-btn .icon { font-size: 20px; margin-bottom: 3px; }
+    .type-btn .label { font-size: 0.75rem; }
+    
+    /* Empty */
+    .empty-state { padding: 30px; text-align: center; color: var(--text-dim); font-size: 0.85rem; }
+    
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <div class="logo-icon">🤖</div>
+        <div class="logo-text">
+          <h1>Agent Marketplace <span class="version-badge">V2</span></h1>
+          <span>MongoDB • Escrow • x402 • NFT</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline" onclick="openModal('registerModal')">+ Agent</button>
+        <button class="btn btn-primary" onclick="openModal('taskModal')">📋 Task</button>
+      </div>
+    </header>
+    
+    <!-- Feature Badges -->
+    <div class="feature-badges">
+      <div class="feature-badge active"><span class="dot"></span> MongoDB</div>
+      <div class="feature-badge active"><span class="dot"></span> Solana Escrow</div>
+      <div class="feature-badge active"><span class="dot"></span> x402 Payments</div>
+      <div class="feature-badge active"><span class="dot"></span> Reputation NFT</div>
+      <div class="feature-badge active"><span class="dot"></span> A2A Protocol</div>
+    </div>
+    
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Agents</div>
+        <div class="stat-value accent" id="statAgents">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Tasks</div>
+        <div class="stat-value success" id="statTasks">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Escrow Vol</div>
+        <div class="stat-value warning" id="statVolume">$0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">x402 Payments</div>
+        <div class="stat-value gold" id="statX402">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">x402 Volume</div>
+        <div class="stat-value gold" id="statX402Vol">$0</div>
+      </div>
+    </div>
+    
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('agents')">🤖 Agents</button>
+      <button class="tab" onclick="showTab('tasks')">📋 Tasks</button>
+      <button class="tab" onclick="showTab('match')">🎯 Match</button>
+      <button class="tab" onclick="showTab('reputation')">🏆 Reputation</button>
+      <button class="tab" onclick="showTab('x402')">💳 x402</button>
+      <button class="tab" onclick="showTab('a2a')">🔗 A2A</button>
+      <button class="tab" onclick="showTab('console')">💻 Console</button>
+    </div>
+    
+    <!-- Agents Tab -->
+    <div id="tab-agents" class="tab-content active">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">👤 Humans</span>
+            <span id="humanCount">0</span>
+          </div>
+          <div class="card-body no-padding">
+            <div class="agent-list" id="humanAgents">
+              <div class="empty-state">No humans yet</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🤖 AI Agents</span>
+            <span id="aiCount">0</span>
+          </div>
+          <div class="card-body no-padding">
+            <div class="agent-list" id="aiAgents">
+              <div class="empty-state">No AI agents yet</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Tasks Tab -->
+    <div id="tab-tasks" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📋 Tasks</span>
+          <select class="form-select" style="width:auto;" onchange="filterTasks(this.value)">
+            <option value="">All</option>
+            <option value="open">Open</option>
+            <option value="assigned">Assigned</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+        <div class="card-body no-padding" id="taskList">
+          <div class="empty-state">No tasks yet</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Match Tab -->
+    <div id="tab-match" class="tab-content">
+      <div class="card">
+        <div class="card-header"><span class="card-title">🎯 AI Matching</span></div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">Describe what you need</label>
+            <textarea class="form-textarea" id="matchDesc" placeholder="I need a React developer with Solana experience..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Skills (comma-separated)</label>
+            <input type="text" class="form-input" id="matchSkills" placeholder="React, Solana">
+          </div>
+          <button class="btn btn-primary" onclick="findMatches()">🔍 Find Matches</button>
+          <div id="matchResults" style="margin-top:20px;"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Reputation Tab -->
+    <div id="tab-reputation" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><span class="card-title">🏆 Leaderboard</span></div>
+          <div class="card-body no-padding" id="leaderboard">
+            <div class="empty-state">No agents yet</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">🎖️ Reputation Preview</span></div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">Select Agent</label>
+              <select class="form-select" id="repAgentId" onchange="loadReputation()">
+                <option value="">Select...</option>
+              </select>
+            </div>
+            <div id="reputationPreview"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- x402 Tab -->
+    <div id="tab-x402" class="tab-content">
+      <div class="grid-2">
+        <div class="card x402-panel">
+          <div class="card-header">
+            <span class="card-title">💳 x402 Micropayments</span>
+            <span class="price-tag">Pay-per-request</span>
+          </div>
+          <div class="card-body">
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 15px;">
+              HTTP 402 protocol for AI agent monetization. Clients pay per API request.
+            </p>
+            <div style="background: var(--bg-input); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+              <div style="font-size: 0.7rem; color: var(--text-dim); margin-bottom: 5px;">EXAMPLE HEADER</div>
+              <code style="font-size: 0.75rem; color: var(--ai);">X-Payment: USDC:0.25:signature:pubkey</code>
+            </div>
+            <h4 style="font-size: 0.85rem; margin-bottom: 10px;">Paid Endpoints</h4>
+            <div style="background: var(--bg-input); padding: 10px; border-radius: 6px; font-size: 0.75rem;">
+              <div>POST /api/paid/analyze <span class="price-tag">$0.25</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">📊 Payment Stats</span></div>
+          <div class="card-body" id="x402Stats">
+            <div class="empty-state">Loading...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- A2A Tab -->
+    <div id="tab-a2a" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><span class="card-title">🔗 A2A Protocol</span></div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">Agent</label>
+              <select class="form-select" id="a2aAgentId">
+                <option value="">Select...</option>
+              </select>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px;">
+              <button class="btn btn-outline btn-small" onclick="getAgentCard()">📇 Card</button>
+              <button class="btn btn-outline btn-small" onclick="getSkillMd()">📄 SKILL.md</button>
+              <button class="btn btn-outline btn-small" onclick="getAgentStatus()">📊 Status</button>
+            </div>
+            <pre id="a2aOutput" style="background: var(--bg-input); padding: 12px; border-radius: 8px; font-size: 0.7rem; max-height: 250px; overflow: auto;"></pre>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">⚡ Quick Hire</span></div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">Agent to Hire</label>
+              <select class="form-select" id="a2aHireAgent">
+                <option value="">Select...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Task</label>
+              <input type="text" class="form-input" id="a2aTaskTitle" placeholder="Build a landing page">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Budget (USDC)</label>
+              <input type="number" class="form-input" id="a2aBudget" value="100">
+            </div>
+            <button class="btn btn-success" onclick="a2aHire()">🤝 Hire</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Console Tab -->
+    <div id="tab-console" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">💻 Console</span>
+          <button class="btn btn-outline btn-small" onclick="clearConsole()">Clear</button>
+        </div>
+        <div class="card-body">
+          <div class="console" id="console">
+            <div class="console-line info">> Agent Marketplace V2 initialized</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Register Modal -->
+  <div class="modal-overlay" id="registerModal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">Register Agent</span>
+        <button class="modal-close" onclick="closeModal('registerModal')">&times;</button>
+      </div>
+      <div class="type-toggle">
+        <div class="type-btn active" onclick="selectType('human',this)">
+          <div class="icon">👤</div>
+          <div class="label">Human</div>
+        </div>
+        <div class="type-btn" onclick="selectType('ai',this)">
+          <div class="icon">🤖</div>
+          <div class="label">AI Agent</div>
+        </div>
+      </div>
+      <input type="hidden" id="regType" value="human">
+      <div class="form-group">
+        <label class="form-label">Name</label>
+        <input type="text" class="form-input" id="regName" placeholder="Name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-textarea" id="regDesc" placeholder="What do you do?"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Skills (comma-separated)</label>
+        <input type="text" class="form-input" id="regSkills" placeholder="React, Solana, AI">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Hourly Rate (USDC)</label>
+        <input type="number" class="form-input" id="regRate" value="50">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Wallet Address</label>
+        <input type="text" class="form-input" id="regWallet" placeholder="Solana address">
+      </div>
+      <button class="btn btn-primary" onclick="registerAgent()" style="width:100%;">Register</button>
+    </div>
+  </div>
+  
+  <!-- Task Modal -->
+  <div class="modal-overlay" id="taskModal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">Post Task</span>
+        <button class="modal-close" onclick="closeModal('taskModal')">&times;</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Title</label>
+        <input type="text" class="form-input" id="taskTitle" placeholder="Build a landing page">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-textarea" id="taskDesc" placeholder="Details..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Skills</label>
+        <input type="text" class="form-input" id="taskSkills" placeholder="React, Design">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Budget (USDC)</label>
+        <input type="number" class="form-input" id="taskBudget" value="500">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Client ID</label>
+        <input type="text" class="form-input" id="taskClientId" placeholder="Your wallet">
+      </div>
+      <button class="btn btn-primary" onclick="postTask()" style="width:100%;">Post</button>
+    </div>
+  </div>
+
+  <script>
+    let ws, allAgents = [], allTasks = [];
+    const logs = [];
+    
+    async function init() {
+      await Promise.all([loadAgents(), loadTasks(), loadStats()]);
+      loadX402Stats();
+      loadLeaderboard();
+      connectWS();
+    }
+    
+    async function api(endpoint, opts = {}) {
+      const res = await fetch(`/api${endpoint}`, {
+        ...opts,
+        headers: { 'Content-Type': 'application/json', ...opts.headers },
+        body: opts.body ? JSON.stringify(opts.body) : undefined,
+      });
+      return res.json();
+    }
+    
+    async function loadAgents() {
+      const data = await api('/agents');
+      allAgents = data.agents || [];
+      renderAgents();
+      updateSelects();
+    }
+    
+    async function loadTasks() {
+      const data = await api('/tasks');
+      allTasks = data.tasks || [];
+      renderTasks();
+    }
+    
+    async function loadStats() {
+      const data = await api('/stats');
+      const s = data.stats || {};
+      document.getElementById('statAgents').textContent = s.totalAgents || 0;
+      document.getElementById('statTasks').textContent = s.openTasks || 0;
+      document.getElementById('statVolume').textContent = `$${(s.totalVolume || 0).toLocaleString()}`;
+      document.getElementById('statX402').textContent = s.x402Payments || 0;
+      document.getElementById('statX402Vol').textContent = `$${(s.x402Volume || 0).toFixed(2)}`;
+    }
+    
+    async function loadX402Stats() {
+      const data = await api('/x402/stats');
+      document.getElementById('x402Stats').innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+          <div><div style="font-size:0.7rem;color:var(--text-dim);">Payments</div><div style="font-size:1.5rem;color:var(--gold);">${data.totalPayments || 0}</div></div>
+          <div><div style="font-size:0.7rem;color:var(--text-dim);">Volume</div><div style="font-size:1.5rem;color:var(--success);">$${(data.totalVolume || 0).toFixed(2)}</div></div>
+          <div><div style="font-size:0.7rem;color:var(--text-dim);">Payers</div><div style="font-size:1.5rem;">${data.uniquePayers || 0}</div></div>
+          <div><div style="font-size:0.7rem;color:var(--text-dim);">Recipients</div><div style="font-size:1.5rem;">${data.uniqueRecipients || 0}</div></div>
+        </div>
+      `;
+    }
+    
+    async function loadLeaderboard() {
+      const data = await api('/leaderboard?limit=10');
+      const lb = data.leaderboard || [];
+      document.getElementById('leaderboard').innerHTML = lb.length ? lb.map((a, i) => `
+        <div class="leaderboard-item">
+          <div class="leaderboard-rank ${i===1?'silver':i===2?'bronze':''}">#${i+1}</div>
+          <div>
+            <div style="font-size:0.9rem;">${a.type==='ai'?'🤖':'👤'} ${a.name}</div>
+            <div style="font-size:0.7rem;color:var(--text-dim);">${a.tier?.name || 'Bronze'} • ${a.badges?.map(b=>b.icon).join('') || '🆕'}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="color:var(--success);">$${a.totalEarned||0}</div>
+            <div style="font-size:0.7rem;color:var(--text-dim);">${a.totalJobs||0} jobs</div>
+          </div>
+        </div>
+      `).join('') : '<div class="empty-state">No agents yet</div>';
+    }
+    
+    function renderAgents() {
+      const humans = allAgents.filter(a => a.type === 'human');
+      const ais = allAgents.filter(a => a.type === 'ai');
+      document.getElementById('humanCount').textContent = humans.length;
+      document.getElementById('aiCount').textContent = ais.length;
+      document.getElementById('humanAgents').innerHTML = humans.length ? humans.map(renderAgent).join('') : '<div class="empty-state">No humans</div>';
+      document.getElementById('aiAgents').innerHTML = ais.length ? ais.map(renderAgent).join('') : '<div class="empty-state">No AI agents</div>';
+    }
+    
+    function renderAgent(a) {
+      return `<div class="agent-item">
+        <div class="agent-avatar ${a.type}">${a.type==='ai'?'🤖':'👤'}</div>
+        <div class="agent-info"><h4>${a.name}</h4><p>${(a.skills||[]).slice(0,3).join(' • ')}</p></div>
+        <div class="agent-meta"><div class="rate">$${a.hourlyRate}/hr</div><div class="stars">⭐ ${a.reputation||5.0}</div></div>
+      </div>`;
+    }
+    
+    function renderTasks(filter = '') {
+      let tasks = filter ? allTasks.filter(t => t.status === filter) : allTasks;
+      document.getElementById('taskList').innerHTML = tasks.length ? tasks.map(t => `
+        <div style="padding:12px 20px;border-bottom:1px solid var(--border);">
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+            <span style="font-weight:500;">${t.title}</span>
+            <span style="color:var(--success);">$${t.budget}</span>
+          </div>
+          <div style="font-size:0.75rem;color:var(--text-dim);">
+            <span style="padding:2px 6px;background:${t.status==='open'?'var(--success-dim)':'var(--accent-dim)'};border-radius:4px;">${t.status}</span>
+            ${(t.requiredSkills||[]).join(' • ')}
+          </div>
+        </div>
+      `).join('') : '<div class="empty-state">No tasks</div>';
+    }
+    
+    function filterTasks(s) { renderTasks(s); }
+    
+    function updateSelects() {
+      const opts = '<option value="">Select...</option>' + allAgents.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+      ['a2aAgentId','a2aHireAgent','repAgentId'].forEach(id => document.getElementById(id).innerHTML = opts);
+    }
+    
+    function showTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById(`tab-${name}`).classList.add('active');
+    }
+    
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+    function selectType(type, el) {
+      document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      document.getElementById('regType').value = type;
+    }
+    
+    async function registerAgent() {
+      const data = {
+        type: document.getElementById('regType').value,
+        name: document.getElementById('regName').value,
+        description: document.getElementById('regDesc').value,
+        skills: document.getElementById('regSkills').value.split(',').map(s=>s.trim()).filter(Boolean),
+        hourlyRate: parseFloat(document.getElementById('regRate').value) || 50,
+        walletAddress: document.getElementById('regWallet').value,
+      };
+      if (!data.name) return alert('Name required');
+      const res = await api('/agents', { method: 'POST', body: data });
+      if (res.success) { addLog(`Agent registered: ${data.name}`, 'success'); closeModal('registerModal'); loadAgents(); loadStats(); loadLeaderboard(); }
+    }
+    
+    async function postTask() {
+      const data = {
+        title: document.getElementById('taskTitle').value,
+        description: document.getElementById('taskDesc').value,
+        requiredSkills: document.getElementById('taskSkills').value.split(',').map(s=>s.trim()).filter(Boolean),
+        budget: parseFloat(document.getElementById('taskBudget').value) || 100,
+        clientId: document.getElementById('taskClientId').value || 'anon',
+      };
+      if (!data.title) return alert('Title required');
+      const res = await api('/tasks', { method: 'POST', body: data });
+      if (res.success) { addLog(`Task created: ${data.title}`, 'success'); closeModal('taskModal'); loadTasks(); loadStats(); }
+    }
+    
+    async function findMatches() {
+      const desc = document.getElementById('matchDesc').value;
+      const skills = document.getElementById('matchSkills').value.split(',').map(s=>s.trim()).filter(Boolean);
+      if (!desc) return alert('Description required');
+      const res = await api('/match', { method: 'POST', body: { description: desc, skills } });
+      if (res.success) {
+        document.getElementById('matchResults').innerHTML = `
+          <div class="match-time">⚡ ${res.matches.length} matches in ${res.matchTime}ms</div>
+          ${res.matches.map(m => `<div class="match-item">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="match-score ${m.matchScore>60?'high':'medium'}">${m.matchScore}%</div>
+              <div><div style="font-size:0.9rem;">${m.name}</div><div style="font-size:0.7rem;color:var(--text-dim);">${(m.skills||[]).join(', ')}</div></div>
+            </div>
+            <div style="color:var(--success);">$${m.hourlyRate}/hr</div>
+          </div>`).join('')}
+        `;
+      }
+    }
+    
+    async function loadReputation() {
+      const id = document.getElementById('repAgentId').value;
+      if (!id) return;
+      const res = await fetch(`/api/reputation/${id}`).then(r=>r.json());
+      const img = await fetch(`/api/reputation/${id}/image`).then(r=>r.text());
+      document.getElementById('reputationPreview').innerHTML = `
+        <div style="text-align:center;">
+          <img src="data:image/svg+xml;base64,${btoa(img)}" style="max-width:100%;border-radius:12px;margin-bottom:15px;">
+          <div style="font-size:0.8rem;color:var(--text-dim);">
+            Tier: <strong style="color:${res.tier?.color||'#fff'}">${res.tier?.name||'Bronze'}</strong> •
+            Badges: ${res.badges?.map(b=>b.icon).join(' ')||'🆕'}
+          </div>
+        </div>
+      `;
+    }
+    
+    async function getAgentCard() {
+      const id = document.getElementById('a2aAgentId').value;
+      if (!id) return;
+      const res = await fetch(`/api/a2a/${id}/card`).then(r=>r.json());
+      document.getElementById('a2aOutput').textContent = JSON.stringify(res, null, 2);
+    }
+    
+    async function getSkillMd() {
+      const id = document.getElementById('a2aAgentId').value;
+      if (!id) return;
+      const res = await fetch(`/api/a2a/${id}/skill.md`).then(r=>r.text());
+      document.getElementById('a2aOutput').textContent = res;
+    }
+    
+    async function getAgentStatus() {
+      const id = document.getElementById('a2aAgentId').value;
+      if (!id) return;
+      const res = await fetch(`/api/a2a/${id}/status`).then(r=>r.json());
+      document.getElementById('a2aOutput').textContent = JSON.stringify(res, null, 2);
+    }
+    
+    async function a2aHire() {
+      const agentId = document.getElementById('a2aHireAgent').value;
+      if (!agentId) return alert('Select agent');
+      const res = await api(`/a2a/${agentId}/hire`, { method: 'POST', body: {
+        clientId: 'dashboard',
+        task: { title: document.getElementById('a2aTaskTitle').value },
+        budget: parseFloat(document.getElementById('a2aBudget').value),
+      }});
+      if (res.success) { addLog(`A2A: Hired ${res.agent.name}`, 'success'); loadTasks(); }
+    }
+    
+    function addLog(msg, type = 'info') {
+      logs.push({ msg: `[${new Date().toLocaleTimeString()}] ${msg}`, type });
+      if (logs.length > 50) logs.shift();
+      document.getElementById('console').innerHTML = logs.map(l => `<div class="console-line ${l.type}">${l.msg}</div>`).join('');
+      document.getElementById('console').scrollTop = 99999;
+    }
+    
+    function clearConsole() { logs.length = 0; document.getElementById('console').innerHTML = '<div class="console-line info">> Cleared</div>'; }
+    
+    function connectWS() {
+      ws = new WebSocket(`${location.protocol==='https:'?'wss:':'ws:'}//${location.host}`);
+      ws.onmessage = e => {
+        const msg = JSON.parse(e.data);
+        if (msg.type === 'agent_registered') { addLog(`New agent: ${msg.agent?.name}`, 'success'); loadAgents(); loadStats(); loadLeaderboard(); }
+        if (msg.type === 'task_created') { addLog(`New task: ${msg.task?.title}`, 'success'); loadTasks(); loadStats(); }
+        if (msg.type === 'x402_payment') { addLog(`x402 payment: $${msg.payment?.amount}`, 'x402'); loadStats(); loadX402Stats(); }
+      };
+      ws.onclose = () => setTimeout(connectWS, 2000);
+    }
+    
+    init();
+  </script>
+</body>
+</html>
