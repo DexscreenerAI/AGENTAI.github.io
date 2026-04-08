@@ -1,10 +1,20 @@
 /**
  * AGENT MARKETPLACE V2 - Production Ready
+ * 
+ * Features:
+ * - 7 AI Agents with pay-per-use
+ * - MCP discovery for AI-to-AI communication
+ * - Real Solana payment verification
+ * - OpenAPI/Swagger documentation
  */
 
 const express = require('express');
 const { WebSocketServer } = require('ws');
 const path = require('path');
+
+// Local modules
+const { createMCPServer } = require('./lib/mcp-server');
+const { paymentMiddleware, revenueTracker } = require('./lib/payment-verifier');
 
 // ============================================
 // CONFIG
@@ -16,6 +26,8 @@ const config = {
   anthropicKey: process.env.ANTHROPIC_API_KEY || null,
   platformWallet: process.env.PLATFORM_WALLET || '2jZ9gpmfZBrz5qcVCZmqiFexQgcdfaZsoV9wGCqt2mhn',
   network: process.env.NETWORK || 'devnet',
+  baseUrl: process.env.BASE_URL || null,
+  skipPaymentVerification: process.env.SKIP_PAYMENT_VERIFICATION === 'true',
 };
 
 console.log('🚀 Starting Agent Marketplace V2...');
@@ -99,6 +111,17 @@ async function connectMongo() {
 // ============================================
 
 function x402Middleware(price, recipient) {
+  // Use real payment verification in production
+  if (!config.skipPaymentVerification) {
+    return paymentMiddleware({
+      price,
+      recipient: recipient || config.platformWallet,
+      network: config.network,
+      skipVerification: false,
+    });
+  }
+  
+  // Dev mode: accept all payments
   return (req, res, next) => {
     const paymentHeader = req.headers['x-payment'];
     
@@ -121,9 +144,15 @@ function x402Middleware(price, recipient) {
 
     // Accept payment for testing
     req.x402 = { paid: true, amount: price };
+    req.payment = { verified: false, amount: price };
     next();
   };
 }
+
+// Alias for consistency
+const x402 = {
+  middleware: x402Middleware,
+};
 
 // ============================================
 // EXPRESS APP
@@ -147,6 +176,18 @@ app.use((req, res, next) => {
 
 // Static files (SDK)
 app.use('/public', express.static(path.join(__dirname, 'public')));
+
+// MCP Discovery (for AI agents to find us)
+app.use(createMCPServer(null, {
+  baseUrl: config.baseUrl,
+  paymentWallet: config.platformWallet,
+  network: config.network,
+}));
+
+// Revenue stats endpoint
+app.get('/api/revenue', (req, res) => {
+  res.json(revenueTracker.getStats());
+});
 
 // Landing page
 app.get('/', (req, res) => {
