@@ -44,24 +44,24 @@ function mountAgentRouters(app, agents, x402, recipientWallet) {
           id: 'solana-analyzer', 
           name: 'Solana Analyzer', 
           description: 'Token analysis with DexScreener + Rugcheck + AI',
-          price: 0.50, 
+          price: 0.10, 
           category: 'analysis',
           endpoints: [
-            { path: '/analyze', price: 0.50 },
-            { path: '/quick-check', price: 0.20 },
-            { path: '/compare', price: 1.00 },
+            { path: '/analyze', price: 0.10 },
+            { path: '/quick-check', price: 0.05 },
+            { path: '/compare', price: 0.20 },
           ] 
         },
         { 
           id: 'wallet-analyzer', 
           name: 'Wallet Analyzer', 
           description: 'Portfolio analysis, PnL, trading patterns',
-          price: 0.40, 
+          price: 0.10, 
           category: 'analysis',
           endpoints: [
-            { path: '/analyze', price: 0.40 },
-            { path: '/quick', price: 0.16 },
-            { path: '/compare', price: 0.60 },
+            { path: '/analyze', price: 0.10 },
+            { path: '/quick', price: 0.05 },
+            { path: '/compare', price: 0.15 },
           ] 
         },
         // Trading
@@ -69,12 +69,12 @@ function mountAgentRouters(app, agents, x402, recipientWallet) {
           id: 'exit-signal', 
           name: 'Exit Signal', 
           description: 'AI-powered sell timing with technical analysis',
-          price: 0.35, 
+          price: 0.10, 
           category: 'trading',
           endpoints: [
-            { path: '/analyze', price: 0.35 },
-            { path: '/quick', price: 0.14 },
-            { path: '/monitor', price: 0.70 },
+            { path: '/analyze', price: 0.10 },
+            { path: '/quick', price: 0.05 },
+            { path: '/monitor', price: 0.15 },
           ] 
         },
         // Tracking
@@ -82,13 +82,13 @@ function mountAgentRouters(app, agents, x402, recipientWallet) {
           id: 'whale-tracker', 
           name: 'Whale Tracker', 
           description: 'Track whales, detect accumulation/distribution',
-          price: 0.45, 
+          price: 0.10, 
           category: 'tracking',
           endpoints: [
-            { path: '/track', price: 0.45 },
-            { path: '/quick', price: 0.16 },
-            { path: '/wallet', price: 0.36 },
-            { path: '/multi', price: 0.68 },
+            { path: '/track', price: 0.10 },
+            { path: '/quick', price: 0.05 },
+            { path: '/wallet', price: 0.10 },
+            { path: '/multi', price: 0.15 },
           ] 
         },
         // Development
@@ -96,23 +96,23 @@ function mountAgentRouters(app, agents, x402, recipientWallet) {
           id: 'code-reviewer', 
           name: 'Code Reviewer', 
           description: 'Security & best practices code review',
-          price: 0.25, 
+          price: 0.05, 
           category: 'development',
           endpoints: [
-            { path: '/review', price: 0.25 },
-            { path: '/security', price: 0.15 },
+            { path: '/review', price: 0.05 },
+            { path: '/security', price: 0.03 },
           ] 
         },
         { 
           id: 'smart-contract-auditor', 
           name: 'Smart Contract Auditor', 
           description: 'Solana/Ethereum contract security audit',
-          price: 1.00, 
+          price: 0.25, 
           category: 'development',
           endpoints: [
-            { path: '/audit', price: 1.00 },
-            { path: '/quick-scan', price: 0.40 },
-            { path: '/fix', price: 0.50 },
+            { path: '/audit', price: 0.25 },
+            { path: '/quick-scan', price: 0.10 },
+            { path: '/fix', price: 0.15 },
           ] 
         },
         // Content
@@ -120,13 +120,13 @@ function mountAgentRouters(app, agents, x402, recipientWallet) {
           id: 'content-writer', 
           name: 'Content Writer', 
           description: 'Twitter, TikTok, blog content generation',
-          price: 0.20, 
+          price: 0.05, 
           category: 'content',
           endpoints: [
-            { path: '/generate', price: 0.20 },
-            { path: '/thread', price: 0.30 },
-            { path: '/tiktok', price: 0.24 },
-            { path: '/calendar', price: 0.60 },
+            { path: '/generate', price: 0.05 },
+            { path: '/thread', price: 0.08 },
+            { path: '/tiktok', price: 0.06 },
+            { path: '/calendar', price: 0.15 },
           ] 
         },
       ]
