@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DEXAI AGENT — SDK Documentation</title>
+<link rel="icon" type="image/png" href="https://i.ibb.co/DH9f2N8X/97069894-3988-4278-bb76-85e863640cfe.png">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #060a10;
+  --bg2: #0b1018;
+  --card: #111a26;
+  --card-border: #1a2636;
+  --cyan: #00d4ff;
+  --cyan-dim: rgba(0,212,255,0.12);
+  --green: #00ff88;
+  --purple: #b388ff;
+  --text: #dfe4ed;
+  --text2: rgba(255,255,255,0.55);
+  --text3: rgba(255,255,255,0.25);
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.7; }
+a { color: var(--cyan); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code { font-family: var(--mono); background: var(--card); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre { background: var(--card); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; overflow-x: auto; margin: 16px 0; }
+pre code { background: none; padding: 0; }
+
+/* Layout */
+.container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+
+/* Nav */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 14px 32px;
+  background: rgba(6,10,16,0.95);
+  border-bottom: 1px solid var(--card-border);
+  backdrop-filter: blur(20px);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--mono); font-size: 14px; font-weight: 700;
+}
+.nav-logo img { height: 28px; border-radius: 6px; }
+.nav-logo .highlight { color: var(--cyan); }
+.nav-links { display: flex; gap: 24px; }
+.nav-links a { font-family: var(--mono); font-size: 11px; color: var(--text2); }
+.nav-links a:hover { color: var(--cyan); text-decoration: none; }
+
+/* Content */
+.content { padding-top: 80px; }
+h1 { font-family: var(--mono); font-size: 36px; font-weight: 700; margin-bottom: 16px; }
+h1 span { color: var(--cyan); }
+h2 { font-family: var(--mono); font-size: 22px; font-weight: 600; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--card-border); }
+h3 { font-family: var(--mono); font-size: 16px; font-weight: 600; margin: 32px 0 12px; color: var(--cyan); }
+p { margin: 12px 0; color: var(--text2); }
+ul, ol { margin: 12px 0 12px 24px; color: var(--text2); }
+li { margin: 6px 0; }
+
+/* Cards */
+.endpoint-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 16px 0;
+}
+.endpoint-header {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+}
+.method {
+  padding: 4px 10px;
+  background: var(--green);
+  color: #000;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+.endpoint-path {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--text);
+}
+.endpoint-price {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--green);
+  font-weight: 600;
+}
+.endpoint-desc {
+  font-size: 14px;
+  color: var(--text2);
+}
+
+/* Table */
+table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--card-border); }
+th { font-family: var(--mono); font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; }
+td { font-size: 14px; }
+td code { font-size: 12px; }
+
+/* Alert */
+.alert {
+  padding: 16px 20px;
+  background: var(--cyan-dim);
+  border: 1px solid rgba(0,212,255,0.3);
+  border-radius: 10px;
+  margin: 20px 0;
+  display: flex; align-items: flex-start; gap: 12px;
+}
+.alert-icon { font-size: 20px; }
+.alert-content { font-size: 14px; }
+
+/* Footer */
+.footer {
+  margin-top: 80px;
+  padding: 40px 0;
+  border-top: 1px solid var(--card-border);
+  text-align: center;
+  font-size: 12px;
+  color: var(--text3);
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">
+    <img src="https://i.ibb.co/DH9f2N8X/97069894-3988-4278-bb76-85e863640cfe.png" alt="Logo">
+    <span>DEXAI <span class="highlight">AGENT</span></span>
+  </div>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/app">App</a>
+    <a href="/docs.html">Docs</a>
+    <a href="/dashboard">Dashboard</a>
+  </div>
+</nav>
+
+<div class="container content">
+
+<h1>SDK <span>Documentation</span></h1>
+<p>Integrate DEXAI AGENT AI services into your application using our JavaScript SDK.</p>
+
+<div class="alert">
+  <span class="alert-icon">💡</span>
+  <div class="alert-content">
+    <strong>Quick Start:</strong> Include the SDK and start making paid API calls in minutes.
+  </div>
+</div>
+
+<h2>Installation</h2>
+
+<h3>Browser (CDN)</h3>
+<pre><code>&lt;script src="https://your-domain.com/public/sdk.js"&gt;&lt;/script&gt;</code></pre>
+
+<h3>Download</h3>
+<pre><code>curl -O https://your-domain.com/public/sdk.js</code></pre>
+
+<h2>Quick Start</h2>
+
+<pre><code class="language-javascript">// Initialize the client
+const client = new DexAIClient({
+  apiUrl: 'https://your-api-url.com'
+});
+
+// Connect wallet (Phantom/Solflare)
+await client.connect();
+
+// Make a paid API call
+const result = await client.solanaAnalyzer.analyze('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
+console.log(result);
+</code></pre>
+
+<h2>Wallet Connection</h2>
+
+<pre><code class="language-javascript">// Connect to Phantom or Solflare
+const { connected, publicKey } = await client.connect();
+
+// Check connection status
+if (client.isConnected()) {
+  console.log('Connected:', client.publicKey);
+}
+
+// Disconnect
+await client.disconnect();
+</code></pre>
+
+<h2>API Reference</h2>
+
+<h3>Solana Analyzer</h3>
+
+<div class="endpoint-card">
+  <div class="endpoint-header">
+    <span class="method">POST</span>
+    <span class="endpoint-path">client.solanaAnalyzer.analyze(tokenMint, options?)</span>
+    <span class="endpoint-price">$0.50</span>
+  </div>
+  <div class="endpoint-desc">Full token analysis with DexScreener data, Rugcheck risk, and AI verdict.</div>
+</div>
+
+<pre><code class="language-javascript">const result = await client.solanaAnalyzer.analyze(
+  'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+  { question: 'Is this a good buy?' }
+);
+
+// Returns:
+// {
+//   success: true,
+//   token: { name, symbol, price },
+//   dexscreener: { ... },
+//   rugcheck: { riskScore, riskLevel, ... },
+//   analysis: { verdict, confidence, recommendation, ... }
+// }
+</code></pre>
+
+<div class="endpoint-card">
+  <div class="endpoint-header">
+    <span class="method">POST</span>
+    <span class="endpoint-path">client.solanaAnalyzer.quickCheck(tokenMint)</span>
+    <span class="endpoint-price">$0.20</span>
+  </div>
+  <div class="endpoint-desc">Quick risk assessment without full AI analysis.</div>
+</div>
+
+<div class="endpoint-card">
+  <div class="endpoint-header">
+    <span class="method">POST</span>
+    <span class="endpoint-path">client.solanaAnalyzer.compare(tokenMints[])</span>
+    <span class="endpoint-price">$1.00</span>
+  </div>
+  <div class="endpoint-desc">Compare 2-5 tokens and rank them.</div>
+</div>
+
+<h3>Code Reviewer</h3>
+
+<div class="endpoint-card">
+  <div class="endpoint-header">
+    <span class="method">POST</span>
+    <span class="endpoint-path">client.codeReviewer.review(code, options?)</span>
+    <span class="endpoint-price">$0.25</span>
+  </div>
+  <div class="endpoint-desc">Full code review with security, performance, and best practices analysis.</div>
+</div>
+
+<pre><code class="language-javascript">const result = await client.codeReviewer.review(`
+  function transfer(address to, uint amount) {
+    balances[msg.sender] -= amount;
+    balances[to] += amount;
+  }
+`, { language: 'solidity' });
+</code></pre>
+
+<div class="endpoint-card">
+  <div class="endpoint-header">
+    <span class="method">POST</span>
+    <span class="endpoint-path">client.codeReviewer.security(code, language?)</span>
+    <span class="endpoint-price">$0.15</span>
+  </div>
+  <div class="endpoint-desc">Security-focused scan only.</div>
+</div>
+
+<h3>Smart Contract Auditor</h3>
+
+<div class="endpoint-card">
+  <div class="endpoint-header">
+    <span class="method">POST</span>
+    <span class="endpoint-path">client.smartContractAuditor.audit(code, options?)</span>
+    <span class="endpoint-price">$1.00</span>
+  </div>
+  <div class="endpoint-desc">Comprehensive security audit for Solana/Ethereum contracts.</div>
+</div>
+
+<table>
+  <thead>
+    <tr><th>Method</th><th>Price</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>.audit(code)</code></td><td>$1.00</td><td>Full security audit</td></tr>
+    <tr><td><code>.quickScan(code)</code></td><td>$0.40</td><td>Quick vulnerability scan</td></tr>
+    <tr><td><code>.fix(code, vuln)</code></td><td>$0.50</td><td>Generate fix for vulnerability</td></tr>
+    <tr><td><code>.compare(old, new)</code></td><td>$0.60</td><td>Compare versions</td></tr>
+    <tr><td><code>.report(result)</code></td><td>$0.30</td><td>Generate markdown report</td></tr>
+  </tbody>
+</table>
+
+<h3>Content Writer</h3>
+
+<div class="endpoint-card">
+  <div class="endpoint-header">
+    <span class="method">POST</span>
+    <span class="endpoint-path">client.contentWriter.generate(options)</span>
+    <span class="endpoint-price">$0.20</span>
+  </div>
+  <div class="endpoint-desc">Generate content for any platform.</div>
+</div>
+
+<pre><code class="language-javascript">const result = await client.contentWriter.generate({
+  type: 'twitter',    // twitter, linkedin, blog, email, tiktok
+  topic: 'Why Solana is the future of DeFi',
+  tone: 'professional',
+  audience: 'crypto traders'
+});
+</code></pre>
+
+<table>
+  <thead>
+    <tr><th>Method</th><th>Price</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>.generate(opts)</code></td><td>$0.20</td><td>Generate any content type</td></tr>
+    <tr><td><code>.thread(topic)</code></td><td>$0.30</td><td>Twitter thread (5-10 tweets)</td></tr>
+    <tr><td><code>.tiktok(topic)</code></td><td>$0.24</td><td>TikTok script with visuals</td></tr>
+    <tr><td><code>.rewrite(content)</code></td><td>$0.20</td><td>Improve existing content</td></tr>
+    <tr><td><code>.calendar(niche)</code></td><td>$0.60</td><td>7-day content calendar</td></tr>
+  </tbody>
+</table>
+
+<h2>Error Handling</h2>
+
+<pre><code class="language-javascript">try {
+  const result = await client.solanaAnalyzer.analyze(tokenMint);
+} catch (error) {
+  if (error instanceof PaymentRequiredError) {
+    console.log('Payment needed:', error.payment.price, error.payment.currency);
+  } else {
+    console.error('Error:', error.message);
+  }
+}
+</code></pre>
+
+<h2>x402 Protocol</h2>
+
+<p>All payments use the <strong>x402</strong> micropayment protocol:</p>
+
+<ol>
+  <li>Client makes API request</li>
+  <li>Server returns <code>402 Payment Required</code> with price</li>
+  <li>Client signs payment with wallet</li>
+  <li>Client resends request with <code>X-Payment</code> header</li>
+  <li>Server verifies payment and returns response</li>
+</ol>
+
+<p>The SDK handles this automatically when you're connected to a wallet.</p>
+
+<h2>Pricing Summary</h2>
+
+<table>
+  <thead>
+    <tr><th>Agent</th><th>Endpoint</th><th>Price</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Solana Analyzer</td><td>analyze</td><td>$0.50</td></tr>
+    <tr><td>Solana Analyzer</td><td>quickCheck</td><td>$0.20</td></tr>
+    <tr><td>Solana Analyzer</td><td>compare</td><td>$1.00</td></tr>
+    <tr><td>Code Reviewer</td><td>review</td><td>$0.25</td></tr>
+    <tr><td>Code Reviewer</td><td>security</td><td>$0.15</td></tr>
+    <tr><td>SC Auditor</td><td>audit</td><td>$1.00</td></tr>
+    <tr><td>SC Auditor</td><td>quickScan</td><td>$0.40</td></tr>
+    <tr><td>Content Writer</td><td>generate</td><td>$0.20</td></tr>
+    <tr><td>Content Writer</td><td>thread</td><td>$0.30</td></tr>
+    <tr><td>Content Writer</td><td>tiktok</td><td>$0.24</td></tr>
+  </tbody>
+</table>
+
+<div class="footer">
+  © 2025 DEXAI AGENT — All rights reserved
+</div>
+
+</div>
+
+</body>
+</html>

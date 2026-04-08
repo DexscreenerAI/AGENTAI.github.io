@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DEXAI AGENT | App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg-primary: #0a0a0f; --bg-secondary: #12121a; --bg-card: #16161f; --bg-input: #1a1a24; --accent-primary: #00ff88; --accent-secondary: #00d4ff; --accent-warning: #ffaa00; --accent-danger: #ff3366; --text-primary: #ffffff; --text-secondary: #8a8a9a; --text-muted: #5a5a6a; --border-color: rgba(0, 255, 136, 0.15); --gradient-primary: linear-gradient(135deg, #00ff88, #00d4ff); }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Rajdhani', sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
+    .bg-grid { position: fixed; inset: 0; background-image: linear-gradient(rgba(0, 255, 136, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 136, 0.02) 1px, transparent 1px); background-size: 50px 50px; pointer-events: none; }
+    header { position: sticky; top: 0; z-index: 100; padding: 1rem 2rem; background: rgba(10, 10, 15, 0.9); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+    .logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+    .logo-icon { width: 36px; height: 36px; background: var(--gradient-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron'; font-weight: 900; color: var(--bg-primary); }
+    .logo-text { font-family: 'Orbitron'; font-weight: 700; font-size: 1.2rem; }
+    .logo-text span { background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .wallet-btn { background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.75rem 1.5rem; border-radius: 10px; font-family: 'Orbitron'; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s; }
+    .wallet-btn:hover { border-color: var(--accent-primary); }
+    .wallet-btn.connected { background: rgba(0, 255, 136, 0.1); border-color: var(--accent-primary); color: var(--accent-primary); }
+    .wallet-btn .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-danger); }
+    .wallet-btn.connected .dot { background: var(--accent-primary); animation: pulse 2s infinite; }
+    @keyframes pulse { 50% { opacity: 0.5; } }
+    main { position: relative; z-index: 1; display: grid; grid-template-columns: 260px 1fr 380px; min-height: calc(100vh - 70px); }
+    .sidebar { background: var(--bg-secondary); border-right: 1px solid var(--border-color); padding: 1.5rem; }
+    .sidebar-title { font-family: 'Orbitron'; font-size: 0.7rem; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 1rem; }
+    .agent-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .agent-item { padding: 1rem; background: var(--bg-card); border: 1px solid transparent; border-radius: 10px; cursor: pointer; transition: all 0.3s; }
+    .agent-item:hover { border-color: var(--border-color); }
+    .agent-item.active { border-color: var(--accent-primary); background: rgba(0, 255, 136, 0.05); }
+    .agent-item-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+    .agent-item-icon { font-size: 1.4rem; }
+    .agent-item-name { font-family: 'Orbitron'; font-size: 0.85rem; font-weight: 600; }
+    .agent-item-price { font-family: 'JetBrains Mono'; font-size: 0.75rem; color: var(--accent-primary); }
+    .agent-item-desc { font-size: 0.75rem; color: var(--text-secondary); }
+    .balance-box { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 1rem; margin-top: 1.5rem; }
+    .balance-label { font-size: 0.7rem; color: var(--text-muted); letter-spacing: 1px; }
+    .balance-value { font-family: 'Orbitron'; font-size: 1.1rem; color: var(--accent-primary); margin-top: 0.25rem; }
+    .content { padding: 2rem; overflow-y: auto; }
+    .content-header h1 { font-family: 'Orbitron'; font-size: 1.6rem; display: flex; align-items: center; gap: 0.75rem; }
+    .content-header p { color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.95rem; }
+    .form-group { margin: 1.5rem 0; }
+    .form-label { display: block; font-family: 'Orbitron'; font-size: 0.75rem; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 0.5rem; }
+    .form-input { width: 100%; padding: 1rem; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 10px; color: var(--text-primary); font-family: 'Rajdhani'; font-size: 1rem; transition: all 0.3s; }
+    .form-input:focus { outline: none; border-color: var(--accent-primary); }
+    .form-input::placeholder { color: var(--text-muted); }
+    textarea.form-input { min-height: 180px; resize: vertical; font-family: 'JetBrains Mono'; font-size: 0.85rem; }
+    select.form-input { cursor: pointer; }
+    .submit-btn { width: 100%; padding: 1rem 2rem; background: var(--gradient-primary); color: var(--bg-primary); border: none; border-radius: 10px; font-family: 'Orbitron'; font-size: 0.95rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.75rem; transition: all 0.3s; margin-top: 1.5rem; }
+    .submit-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0, 255, 136, 0.4); }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .submit-btn .price { background: rgba(0, 0, 0, 0.2); padding: 0.2rem 0.6rem; border-radius: 5px; font-size: 0.8rem; }
+    .results { background: var(--bg-secondary); border-left: 1px solid var(--border-color); padding: 1.5rem; overflow-y: auto; }
+    .results-header { font-family: 'Orbitron'; font-size: 0.7rem; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 1rem; display: flex; justify-content: space-between; }
+    .results-clear { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.7rem; }
+    .results-clear:hover { color: var(--accent-danger); }
+    .result-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+    .result-card.success { border-color: rgba(0, 255, 136, 0.3); }
+    .result-card.error { border-color: rgba(255, 51, 102, 0.3); }
+    .result-card.pending { border-color: rgba(255, 170, 0, 0.3); }
+    .result-header { display: flex; justify-content: space-between; margin-bottom: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
+    .result-agent { font-family: 'Orbitron'; font-size: 0.8rem; }
+    .result-time { font-family: 'JetBrains Mono'; font-size: 0.7rem; color: var(--text-muted); }
+    .result-body { font-family: 'JetBrains Mono'; font-size: 0.8rem; line-height: 1.6; white-space: pre-wrap; word-break: break-word; max-height: 350px; overflow-y: auto; }
+    .result-body::-webkit-scrollbar { width: 5px; }
+    .result-body::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+    .loading { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 2rem; }
+    .spinner { width: 36px; height: 36px; border: 3px solid var(--border-color); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .empty-state { text-align: center; padding: 3rem; color: var(--text-muted); }
+    .empty-state-icon { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.5; }
+    .toast-container { position: fixed; bottom: 2rem; right: 2rem; z-index: 1000; }
+    .toast { padding: 1rem 1.5rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; display: flex; align-items: center; gap: 0.75rem; animation: slideIn 0.3s; margin-top: 0.5rem; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } }
+    .toast.success { border-color: var(--accent-primary); }
+    .toast.error { border-color: var(--accent-danger); }
+    /* Demo Mode Banner */
+    .demo-banner { background: linear-gradient(90deg, rgba(255, 170, 0, 0.1), rgba(0, 255, 136, 0.1)); border: 1px solid var(--accent-warning); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; }
+    .demo-banner span:first-child { font-size: 1.2rem; }
+    @media (max-width: 1100px) { main { grid-template-columns: 1fr; } .sidebar, .results { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <header>
+    <a href="landing.html" class="logo"><div class="logo-icon">D</div><div class="logo-text">DEX<span>AI</span></div></a>
+    <button class="wallet-btn" id="walletBtn" onclick="connectWallet()"><span class="dot"></span><span id="walletText">Connect Wallet</span></button>
+  </header>
+  <main>
+    <aside class="sidebar">
+      <div class="sidebar-title">SELECT AGENT</div>
+      <div class="agent-list">
+        <div class="agent-item active" data-agent="solana-analyzer"><div class="agent-item-header"><span class="agent-item-icon">📊</span><span class="agent-item-name">Solana Analyzer</span></div><div class="agent-item-price">$0.50</div><div class="agent-item-desc">Token analysis + AI verdict</div></div>
+        <div class="agent-item" data-agent="code-reviewer"><div class="agent-item-header"><span class="agent-item-icon">🔍</span><span class="agent-item-name">Code Reviewer</span></div><div class="agent-item-price">$0.25</div><div class="agent-item-desc">Security & best practices</div></div>
+        <div class="agent-item" data-agent="smart-contract-auditor"><div class="agent-item-header"><span class="agent-item-icon">🔐</span><span class="agent-item-name">SC Auditor</span></div><div class="agent-item-price">$1.00</div><div class="agent-item-desc">Smart contract security</div></div>
+        <div class="agent-item" data-agent="content-writer"><div class="agent-item-header"><span class="agent-item-icon">✍️</span><span class="agent-item-name">Content Writer</span></div><div class="agent-item-price">$0.20</div><div class="agent-item-desc">Crypto content creation</div></div>
+      </div>
+      <div class="balance-box" id="balanceBox" style="display:none;"><div class="balance-label">USDC BALANCE</div><div class="balance-value" id="usdcBalance">0.00</div></div>
+    </aside>
+    <section class="content">
+      <div class="demo-banner"><span>🧪</span><span><strong>Demo Mode:</strong> Wallet signature simulates payment. No real USDC charged.</span></div>
+      <!-- Solana Analyzer Form -->
+      <div id="form-solana-analyzer" class="agent-form">
+        <div class="content-header"><h1>📊 Solana Analyzer</h1><p>Get comprehensive token analysis with DexScreener, Rugcheck, and AI recommendations.</p></div>
+        <div class="form-group"><label class="form-label">TOKEN MINT ADDRESS</label><input type="text" class="form-input" id="tokenMint" placeholder="e.g. EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"></div>
+        <div class="form-group"><label class="form-label">QUESTION (OPTIONAL)</label><input type="text" class="form-input" id="tokenQuestion" placeholder="e.g. Is this a good entry?"></div>
+        <button class="submit-btn" onclick="runAgent('solana-analyzer')">🚀 ANALYZE <span class="price">$0.50</span></button>
+      </div>
+      <!-- Code Reviewer Form -->
+      <div id="form-code-reviewer" class="agent-form" style="display:none;">
+        <div class="content-header"><h1>🔍 Code Reviewer</h1><p>Get expert code review with security analysis and refactoring suggestions.</p></div>
+        <div class="form-group"><label class="form-label">YOUR CODE</label><textarea class="form-input" id="codeInput" placeholder="Paste your code here..."></textarea></div>
+        <div class="form-group"><label class="form-label">LANGUAGE</label><select class="form-input" id="codeLanguage"><option value="">Auto-detect</option><option value="javascript">JavaScript</option><option value="typescript">TypeScript</option><option value="python">Python</option><option value="rust">Rust</option><option value="solidity">Solidity</option></select></div>
+        <button class="submit-btn" onclick="runAgent('code-reviewer')">🔍 REVIEW <span class="price">$0.25</span></button>
+      </div>
+      <!-- SC Auditor Form -->
+      <div id="form-smart-contract-auditor" class="agent-form" style="display:none;">
+        <div class="content-header"><h1>🔐 Smart Contract Auditor</h1><p>Security audit for Solana (Anchor) and Ethereum (Solidity) contracts.</p></div>
+        <div class="form-group"><label class="form-label">SMART CONTRACT CODE</label><textarea class="form-input" id="contractCode" placeholder="Paste your contract code here..."></textarea></div>
+        <div class="form-group"><label class="form-label">CONTEXT (OPTIONAL)</label><input type="text" class="form-input" id="contractContext" placeholder="e.g. Staking contract"></div>
+        <button class="submit-btn" onclick="runAgent('smart-contract-auditor')">🔐 AUDIT <span class="price">$1.00</span></button>
+      </div>
+      <!-- Content Writer Form -->
+      <div id="form-content-writer" class="agent-form" style="display:none;">
+        <div class="content-header"><h1>✍️ Content Writer</h1><p>Generate crypto content for Twitter, TikTok, blogs, and more.</p></div>
+        <div class="form-group"><label class="form-label">CONTENT TYPE</label><select class="form-input" id="contentType"><option value="twitter">Twitter Post</option><option value="thread">Twitter Thread</option><option value="tiktok">TikTok Script</option><option value="blog">Blog Post</option></select></div>
+        <div class="form-group"><label class="form-label">TOPIC</label><input type="text" class="form-input" id="contentTopic" placeholder="e.g. Why Solana is the future of DeFi"></div>
+        <div class="form-group"><label class="form-label">TONE</label><select class="form-input" id="contentTone"><option value="professional">Professional</option><option value="casual">Casual</option><option value="humorous">Humorous</option><option value="hype">Hype</option></select></div>
+        <button class="submit-btn" onclick="runAgent('content-writer')">✍️ GENERATE <span class="price">$0.20</span></button>
+      </div>
+    </section>
+    <aside class="results">
+      <div class="results-header"><span>RESULTS</span><button class="results-clear" onclick="clearResults()">Clear</button></div>
+      <div id="resultsContainer"><div class="empty-state"><div class="empty-state-icon">📭</div><p>No results yet.</p></div></div>
+    </aside>
+  </main>
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    // CONFIG - Change API_URL to your Railway URL
+    const API_URL = window.location.origin;
+    const PRICES = { 'solana-analyzer': 0.50, 'code-reviewer': 0.25, 'smart-contract-auditor': 1.00, 'content-writer': 0.20 };
+    const NAMES = { 'solana-analyzer': '📊 Solana Analyzer', 'code-reviewer': '🔍 Code Reviewer', 'smart-contract-auditor': '🔐 SC Auditor', 'content-writer': '✍️ Content Writer' };
+    
+    let wallet = null;
+
+    // Wallet Connection
+    async function connectWallet() {
+      if (!window.solana?.isPhantom) { showToast('Install Phantom wallet', 'error'); window.open('https://phantom.app', '_blank'); return; }
+      try {
+        const resp = await window.solana.connect();
+        wallet = resp.publicKey.toString();
+        document.getElementById('walletBtn').classList.add('connected');
+        document.getElementById('walletText').textContent = wallet.slice(0,4) + '...' + wallet.slice(-4);
+        document.getElementById('balanceBox').style.display = 'block';
+        document.getElementById('usdcBalance').textContent = '25.00 USDC';
+        showToast('Wallet connected!', 'success');
+      } catch (e) { showToast('Connection failed', 'error'); }
+    }
+
+    // Agent Selection
+    document.querySelectorAll('.agent-item').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.agent-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        document.querySelectorAll('.agent-form').forEach(f => f.style.display = 'none');
+        document.getElementById('form-' + item.dataset.agent).style.display = 'block';
+      });
+    });
+    if (location.hash) { const el = document.querySelector('[data-agent="' + location.hash.slice(1) + '"]'); if (el) el.click(); }
+
+    // Run Agent
+    async function runAgent(agentId) {
+      if (!wallet) { showToast('Connect wallet first', 'error'); return; }
+      
+      let endpoint, body;
+      switch (agentId) {
+        case 'solana-analyzer':
+          const mint = document.getElementById('tokenMint').value.trim();
+          if (!mint) { showToast('Enter token address', 'error'); return; }
+          endpoint = '/api/agents/solana-analyzer/analyze';
+          body = { tokenMint: mint, question: document.getElementById('tokenQuestion').value };
+          break;
+        case 'code-reviewer':
+          const code = document.getElementById('codeInput').value.trim();
+          if (!code) { showToast('Enter code', 'error'); return; }
+          endpoint = '/api/agents/code-reviewer/review';
+          body = { code, language: document.getElementById('codeLanguage').value };
+          break;
+        case 'smart-contract-auditor':
+          const sc = document.getElementById('contractCode').value.trim();
+          if (!sc) { showToast('Enter contract code', 'error'); return; }
+          endpoint = '/api/agents/smart-contract-auditor/audit';
+          body = { code: sc, context: document.getElementById('contractContext').value };
+          break;
+        case 'content-writer':
+          const topic = document.getElementById('contentTopic').value.trim();
+          if (!topic) { showToast('Enter topic', 'error'); return; }
+          endpoint = '/api/agents/content-writer/generate';
+          body = { type: document.getElementById('contentType').value, topic, tone: document.getElementById('contentTone').value };
+          break;
+      }
+
+      addResult(agentId, null, 'pending');
+      
+      try {
+        // Simulate payment signature
+        const msg = new TextEncoder().encode('Pay ' + PRICES[agentId] + ' USDC');
+        const { signature } = await window.solana.signMessage(msg, 'utf8');
+        const sig = btoa(String.fromCharCode(...signature));
+        
+        const res = await fetch(API_URL + endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Payment': 'USDC:' + PRICES[agentId] + ':' + sig + ':' + wallet },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed');
+        updateLastResult(agentId, data, 'success');
+        showToast('Done!', 'success');
+      } catch (e) {
+        updateLastResult(agentId, { error: e.message }, 'error');
+        showToast(e.message, 'error');
+      }
+    }
+
+    // Results
+    function addResult(agentId, data, status) {
+      const c = document.getElementById('resultsContainer');
+      const empty = c.querySelector('.empty-state'); if (empty) empty.remove();
+      const card = document.createElement('div');
+      card.className = 'result-card ' + status;
+      card.innerHTML = '<div class="result-header"><div class="result-agent">' + NAMES[agentId] + '</div><div class="result-time">' + new Date().toLocaleTimeString() + '</div></div><div class="result-body">' + (status === 'pending' ? '<div class="loading"><div class="spinner"></div></div>' : formatResult(data)) + '</div>';
+      c.insertBefore(card, c.firstChild);
+    }
+    function updateLastResult(agentId, data, status) {
+      const card = document.querySelector('.result-card');
+      if (card) { card.className = 'result-card ' + status; card.querySelector('.result-body').innerHTML = formatResult(data); }
+    }
+    function formatResult(d) {
+      if (!d) return '';
+      if (d.error) return '<span style="color:var(--accent-danger)">Error: ' + d.error + '</span>';
+      return JSON.stringify(d, null, 2);
+    }
+    function clearResults() { document.getElementById('resultsContainer').innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>No results yet.</p></div>'; }
+
+    // Toast
+    function showToast(msg, type) {
+      const t = document.createElement('div');
+      t.className = 'toast ' + type;
+      t.innerHTML = '<span>' + (type === 'success' ? '✅' : '❌') + '</span><span>' + msg + '</span>';
+      document.getElementById('toastContainer').appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    }
+
+    // Auto-connect
+    if (window.solana?.isConnected) connectWallet();
+  </script>
+</body>
+</html>
