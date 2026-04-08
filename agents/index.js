@@ -1,7 +1,14 @@
+/**
+ * AGENTS INDEX - 7 AI Agents
+ */
+
 const { CodeReviewerAgent } = require('./code-reviewer');
 const { SolanaAnalyzerAgent } = require('./solana-analyzer');
 const { ContentWriterAgent } = require('./content-writer');
 const { SmartContractAuditorAgent } = require('./smart-contract-auditor');
+const { WalletAnalyzerAgent } = require('./wallet-analyzer');
+const { ExitSignalAgent } = require('./exit-signal');
+const { WhaleTrackerAgent } = require('./whale-tracker');
 
 function initializeAgents(config = {}) {
   return {
@@ -9,26 +16,132 @@ function initializeAgents(config = {}) {
     solanaAnalyzer: new SolanaAnalyzerAgent(config),
     contentWriter: new ContentWriterAgent(config),
     smartContractAuditor: new SmartContractAuditorAgent(config),
+    walletAnalyzer: new WalletAnalyzerAgent(config),
+    exitSignal: new ExitSignalAgent(config),
+    whaleTracker: new WhaleTrackerAgent(config),
   };
 }
 
 function mountAgentRouters(app, agents, x402, recipientWallet) {
+  // Mount all agent routers
   app.use('/api/agents', agents.codeReviewer.router(x402, recipientWallet));
   app.use('/api/agents', agents.solanaAnalyzer.router(x402, recipientWallet));
   app.use('/api/agents', agents.contentWriter.router(x402, recipientWallet));
   app.use('/api/agents', agents.smartContractAuditor.router(x402, recipientWallet));
+  app.use('/api/agents', agents.walletAnalyzer.router(x402, recipientWallet));
+  app.use('/api/agents', agents.exitSignal.router(x402, recipientWallet));
+  app.use('/api/agents', agents.whaleTracker.router(x402, recipientWallet));
   
+  // Agent registry endpoint
   app.get('/api/agents/registry', (req, res) => {
     res.json({
       success: true,
+      totalAgents: 7,
+      categories: ['analysis', 'trading', 'tracking', 'development', 'content'],
       agents: [
-        { id: 'solana-analyzer', name: 'Solana Analyzer', price: 0.50, endpoints: ['/analyze', '/quick-check', '/compare'] },
-        { id: 'code-reviewer', name: 'Code Reviewer', price: 0.25, endpoints: ['/review', '/security'] },
-        { id: 'smart-contract-auditor', name: 'Smart Contract Auditor', price: 1.00, endpoints: ['/audit', '/quick-scan', '/fix'] },
-        { id: 'content-writer', name: 'Content Writer', price: 0.20, endpoints: ['/generate', '/thread', '/tiktok'] },
+        // Analysis
+        { 
+          id: 'solana-analyzer', 
+          name: 'Solana Analyzer', 
+          description: 'Token analysis with DexScreener + Rugcheck + AI',
+          price: 0.50, 
+          category: 'analysis',
+          endpoints: [
+            { path: '/analyze', price: 0.50 },
+            { path: '/quick-check', price: 0.20 },
+            { path: '/compare', price: 1.00 },
+          ] 
+        },
+        { 
+          id: 'wallet-analyzer', 
+          name: 'Wallet Analyzer', 
+          description: 'Portfolio analysis, PnL, trading patterns',
+          price: 0.40, 
+          category: 'analysis',
+          endpoints: [
+            { path: '/analyze', price: 0.40 },
+            { path: '/quick', price: 0.16 },
+            { path: '/compare', price: 0.60 },
+          ] 
+        },
+        // Trading
+        { 
+          id: 'exit-signal', 
+          name: 'Exit Signal', 
+          description: 'AI-powered sell timing with technical analysis',
+          price: 0.35, 
+          category: 'trading',
+          endpoints: [
+            { path: '/analyze', price: 0.35 },
+            { path: '/quick', price: 0.14 },
+            { path: '/monitor', price: 0.70 },
+          ] 
+        },
+        // Tracking
+        { 
+          id: 'whale-tracker', 
+          name: 'Whale Tracker', 
+          description: 'Track whales, detect accumulation/distribution',
+          price: 0.45, 
+          category: 'tracking',
+          endpoints: [
+            { path: '/track', price: 0.45 },
+            { path: '/quick', price: 0.16 },
+            { path: '/wallet', price: 0.36 },
+            { path: '/multi', price: 0.68 },
+          ] 
+        },
+        // Development
+        { 
+          id: 'code-reviewer', 
+          name: 'Code Reviewer', 
+          description: 'Security & best practices code review',
+          price: 0.25, 
+          category: 'development',
+          endpoints: [
+            { path: '/review', price: 0.25 },
+            { path: '/security', price: 0.15 },
+          ] 
+        },
+        { 
+          id: 'smart-contract-auditor', 
+          name: 'Smart Contract Auditor', 
+          description: 'Solana/Ethereum contract security audit',
+          price: 1.00, 
+          category: 'development',
+          endpoints: [
+            { path: '/audit', price: 1.00 },
+            { path: '/quick-scan', price: 0.40 },
+            { path: '/fix', price: 0.50 },
+          ] 
+        },
+        // Content
+        { 
+          id: 'content-writer', 
+          name: 'Content Writer', 
+          description: 'Twitter, TikTok, blog content generation',
+          price: 0.20, 
+          category: 'content',
+          endpoints: [
+            { path: '/generate', price: 0.20 },
+            { path: '/thread', price: 0.30 },
+            { path: '/tiktok', price: 0.24 },
+            { path: '/calendar', price: 0.60 },
+          ] 
+        },
       ]
     });
   });
 }
 
-module.exports = { initializeAgents, mountAgentRouters };
+module.exports = { 
+  initializeAgents, 
+  mountAgentRouters,
+  CodeReviewerAgent,
+  SolanaAnalyzerAgent,
+  ContentWriterAgent,
+  SmartContractAuditorAgent,
+  WalletAnalyzerAgent,
+  ExitSignalAgent,
+  WhaleTrackerAgent,
+};

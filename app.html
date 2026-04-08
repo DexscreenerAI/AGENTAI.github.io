@@ -104,6 +104,9 @@
       <div class="sidebar-title">SELECT AGENT</div>
       <div class="agent-list">
         <div class="agent-item active" data-agent="solana-analyzer"><div class="agent-item-header"><span class="agent-item-icon">📊</span><span class="agent-item-name">Solana Analyzer</span></div><div class="agent-item-price">$0.50</div><div class="agent-item-desc">Token analysis + AI verdict</div></div>
+        <div class="agent-item" data-agent="wallet-analyzer"><div class="agent-item-header"><span class="agent-item-icon">👛</span><span class="agent-item-name">Wallet Analyzer</span></div><div class="agent-item-price">$0.40</div><div class="agent-item-desc">Portfolio & PnL analysis</div></div>
+        <div class="agent-item" data-agent="exit-signal"><div class="agent-item-header"><span class="agent-item-icon">🚨</span><span class="agent-item-name">Exit Signal</span></div><div class="agent-item-price">$0.35</div><div class="agent-item-desc">When to sell</div></div>
+        <div class="agent-item" data-agent="whale-tracker"><div class="agent-item-header"><span class="agent-item-icon">🐋</span><span class="agent-item-name">Whale Tracker</span></div><div class="agent-item-price">$0.45</div><div class="agent-item-desc">Track big wallets</div></div>
         <div class="agent-item" data-agent="code-reviewer"><div class="agent-item-header"><span class="agent-item-icon">🔍</span><span class="agent-item-name">Code Reviewer</span></div><div class="agent-item-price">$0.25</div><div class="agent-item-desc">Security & best practices</div></div>
         <div class="agent-item" data-agent="smart-contract-auditor"><div class="agent-item-header"><span class="agent-item-icon">🔐</span><span class="agent-item-name">SC Auditor</span></div><div class="agent-item-price">$1.00</div><div class="agent-item-desc">Smart contract security</div></div>
         <div class="agent-item" data-agent="content-writer"><div class="agent-item-header"><span class="agent-item-icon">✍️</span><span class="agent-item-name">Content Writer</span></div><div class="agent-item-price">$0.20</div><div class="agent-item-desc">Crypto content creation</div></div>
@@ -148,6 +151,25 @@
         <div class="form-group"><label class="form-label">TONE</label><select class="form-input" id="contentTone"><option value="professional">Professional</option><option value="casual">Casual</option><option value="humorous">Humorous</option><option value="hype">Hype</option></select></div>
         <button class="submit-btn" onclick="runAgent('content-writer')">✍️ GENERATE <span class="price">$0.20</span></button>
       </div>
+      <!-- Wallet Analyzer Form -->
+      <div id="form-wallet-analyzer" class="agent-form" style="display:none;">
+        <div class="content-header"><h1>👛 Wallet Analyzer</h1><p>Comprehensive wallet analysis with portfolio breakdown, PnL, and trading patterns.</p></div>
+        <div class="form-group"><label class="form-label">WALLET ADDRESS</label><input type="text" class="form-input" id="walletAddress" placeholder="e.g. 2jZ9gpmfZBrz5qcVCZmqiFexQgcdfaZsoV9wGCqt2mhn"></div>
+        <button class="submit-btn" onclick="runAgent('wallet-analyzer')">👛 ANALYZE WALLET <span class="price">$0.40</span></button>
+      </div>
+      <!-- Exit Signal Form -->
+      <div id="form-exit-signal" class="agent-form" style="display:none;">
+        <div class="content-header"><h1>🚨 Exit Signal</h1><p>AI-powered exit timing with technical indicators and risk analysis.</p></div>
+        <div class="form-group"><label class="form-label">TOKEN MINT ADDRESS</label><input type="text" class="form-input" id="exitTokenMint" placeholder="e.g. EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"></div>
+        <div class="form-group"><label class="form-label">YOUR ENTRY PRICE (OPTIONAL)</label><input type="number" step="0.000001" class="form-input" id="entryPrice" placeholder="e.g. 0.0025"></div>
+        <button class="submit-btn" onclick="runAgent('exit-signal')">🚨 GET SIGNAL <span class="price">$0.35</span></button>
+      </div>
+      <!-- Whale Tracker Form -->
+      <div id="form-whale-tracker" class="agent-form" style="display:none;">
+        <div class="content-header"><h1>🐋 Whale Tracker</h1><p>Track whales, detect accumulation/distribution, and copy-trade signals.</p></div>
+        <div class="form-group"><label class="form-label">TOKEN MINT ADDRESS</label><input type="text" class="form-input" id="whaleTokenMint" placeholder="e.g. EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"></div>
+        <button class="submit-btn" onclick="runAgent('whale-tracker')">🐋 TRACK WHALES <span class="price">$0.45</span></button>
+      </div>
     </section>
     <aside class="results">
       <div class="results-header"><span>RESULTS</span><button class="results-clear" onclick="clearResults()">Clear</button></div>
@@ -185,6 +207,9 @@
       // Prix des agents
       PRICES: {
         'solana-analyzer': 0.50,
+        'wallet-analyzer': 0.40,
+        'exit-signal': 0.35,
+        'whale-tracker': 0.45,
         'code-reviewer': 0.25,
         'smart-contract-auditor': 1.00,
         'content-writer': 0.20
@@ -193,6 +218,9 @@
 
     const NAMES = {
       'solana-analyzer': '📊 Solana Analyzer',
+      'wallet-analyzer': '👛 Wallet Analyzer',
+      'exit-signal': '🚨 Exit Signal',
+      'whale-tracker': '🐋 Whale Tracker',
       'code-reviewer': '🔍 Code Reviewer', 
       'smart-contract-auditor': '🔐 SC Auditor',
       'content-writer': '✍️ Content Writer'
@@ -415,6 +443,26 @@
           if (!topic) { showToast('Enter topic', 'error'); return; }
           endpoint = '/api/agents/content-writer/generate';
           body = { type: document.getElementById('contentType').value, topic, tone: document.getElementById('contentTone').value };
+          break;
+        case 'wallet-analyzer':
+          const walletAddr = document.getElementById('walletAddress').value.trim();
+          if (!walletAddr) { showToast('Enter wallet address', 'error'); return; }
+          endpoint = '/api/agents/wallet-analyzer/analyze';
+          body = { walletAddress: walletAddr };
+          break;
+        case 'exit-signal':
+          const exitMint = document.getElementById('exitTokenMint').value.trim();
+          if (!exitMint) { showToast('Enter token address', 'error'); return; }
+          const entryPriceVal = document.getElementById('entryPrice').value;
+          endpoint = '/api/agents/exit-signal/analyze';
+          body = { tokenMint: exitMint };
+          if (entryPriceVal) body.position = { entryPrice: parseFloat(entryPriceVal) };
+          break;
+        case 'whale-tracker':
+          const whaleMint = document.getElementById('whaleTokenMint').value.trim();
+          if (!whaleMint) { showToast('Enter token address', 'error'); return; }
+          endpoint = '/api/agents/whale-tracker/track';
+          body = { tokenMint: whaleMint };
           break;
       }
 
